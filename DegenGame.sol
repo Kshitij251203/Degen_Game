@@ -1,62 +1,67 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DegenGamingToken is ERC20 {
+contract DegenToken is ERC20, ERC20Burnable, Ownable {
     
-    struct item{
-        uint id;
-        string name;
-        uint price;
-        uint supply;
+    mapping(uint256 => uint256) private price_Value;
+    mapping(address => string[]) private redeemedItems;
+
+    constructor() ERC20("Degen Token", "DGT") Ownable(msg.sender) {
+        price_Value[1] = 50;
+        price_Value[2] = 100;  
+        price_Value[3] = 200;  
     }
 
-    item [100000] public collections;
-
-    item[100000] public DegenStore ;
-
-    constructor() ERC20("Degen Token", "DGT") {
-
-        DegenStore[1] = item(1, "XSuit", 1000,1);
-        DegenStore[2] = item(2, "Mummy Suit", 800,1);
-        DegenStore[3] = item(3, "Pharoa Suit", 900,1);
-        DegenStore[4] = item(4, "Silver Coin", 100,1000);
-        DegenStore[5] = item(5, "Gold Coin", 100,1000);
-
+    function mintDegen(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
     }
 
-    string public degensotre = "1. XSuit, 2. Mummy Suit, 3. Pharoa Suit, 4. Silver Coin, 5. Gold Coin";
-    
-    function mint(uint amount) external {
-        _mint(msg.sender, amount);
-    }
-
-    function  burn(uint amount) external {
-
-        require(balanceOf(msg.sender) >= amount, "You dont have enough DEGEN Tokens");
-        _burn(msg.sender, amount);
-
-    }
-
-    function balance() external view returns(uint){
+    function getDegenBalance() external view returns (uint256) {
         return balanceOf(msg.sender);
     }
 
-    function sendToken(address recipient, uint amount) external {
-        require(balanceOf(msg.sender ) >= amount, "you dont have enough tokens");
-        approve(msg.sender, amount);
-        transferFrom(msg.sender, recipient, amount);
+    function transferTokensTo(address _receiver, uint256 amount) external {
+        require(balanceOf(msg.sender) >= amount, "Insufficient balance");
+        transfer(_receiver, amount);
     }
 
-    function redeemItem(uint256 id) public payable {
-    
-    require(DegenStore[id - 1].supply > 0, "Item not available");
-    require(balanceOf(msg.sender) >= DegenStore[id - 1].price, "You don't have enough DGT");
-
-    DegenStore[id - 1].supply -= 1;
-    _burn(msg.sender, DegenStore[id - 1].price);
-    collections[id] = item(id, DegenStore[id - 1].name, DegenStore[id - 1].price, collections[id].supply + 1);
+    function burnToken(uint256 amount) external {
+        require(balanceOf(msg.sender) >= amount, "Insufficient balance");
+        _burn(msg.sender, amount);
     }
-    
+
+    function gameStore() public pure returns (string[] memory) {
+        string[] memory items = new string[](3);
+        items[0] = "1. X Suit = 50";
+        items[1] = "2. Mummy Suit = 100";
+        items[2] = "3. Pharoa Suit = 200";
+        return items;
+    }
+
+    function redeemTokens(uint256 choice) external {
+        require(choice >= 1 && choice <= 3, "Invalid selection");
+
+        uint256 amountToRedeem = price_Value[choice];
+        require(amountToRedeem > 0, "Invalid choice");
+
+        require(balanceOf(msg.sender) >= amountToRedeem, "Insufficient balance");
+
+        _burn(msg.sender, amountToRedeem);
+
+        if (choice == 1) {
+            redeemedItems[msg.sender].push("DEMONS Portion");
+        } else if (choice == 2) {
+            redeemedItems[msg.sender].push("Elite Shield");
+        } else if (choice == 3) {
+            redeemedItems[msg.sender].push("FRIZAAX NFT");
+        }
+    }
+
+    function getRedeemedItems() external view returns (string[] memory) {
+        return redeemedItems[msg.sender];
+    }
 }
