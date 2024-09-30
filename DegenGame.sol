@@ -34,7 +34,7 @@ contract DegenToken is ERC20, ERC20Burnable, Ownable {
         _burn(msg.sender, amount);
     }
 
-    function gameStore() public pure returns (string[] memory) {
+    function degenStore() public pure returns (string[] memory) {
         string[] memory items = new string[](3);
         items[0] = "1. X Suit = 50";
         items[1] = "2. Mummy Suit = 100";
@@ -42,7 +42,7 @@ contract DegenToken is ERC20, ERC20Burnable, Ownable {
         return items;
     }
 
-    function redeemTokens(uint256 choice) external {
+    function redeemItems(uint256 choice) external {
         require(choice >= 1 && choice <= 3, "Invalid selection");
 
         uint256 amountToRedeem = price_Value[choice];
@@ -53,11 +53,11 @@ contract DegenToken is ERC20, ERC20Burnable, Ownable {
         _burn(msg.sender, amountToRedeem);
 
         if (choice == 1) {
-            redeemedItems[msg.sender].push("DEMONS Portion");
+            redeemedItems[msg.sender].push("X Suit");
         } else if (choice == 2) {
-            redeemedItems[msg.sender].push("Elite Shield");
+            redeemedItems[msg.sender].push("Mummy Suit");
         } else if (choice == 3) {
-            redeemedItems[msg.sender].push("FRIZAAX NFT");
+            redeemedItems[msg.sender].push("Pharoa Suit");
         }
     }
 
